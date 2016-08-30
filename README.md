@@ -14,3 +14,4 @@ server and help predict load at certain times during the day.
 
 ## License
 
+Apache License Version 2.0
