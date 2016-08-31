@@ -47,13 +47,28 @@ class RundeckCalendar:
             self.uuid = uuid
             self.name = name
             self.project = project
-            # TODO figure out the schedule
             if cron_schedule is None:
-                # TODO parse each field
-                pass
+                # TODO determine if '*' is the correct value when not specified in the XML
+                self.second = second if second is not None else '?'
+                self.minute = minute if minute is not None else '?'
+                self.hour = hour if hour is not None else '?'
+                self.day_of_month = day_of_month if day_of_month is not None else '?'
+                self.month = month if month is not None else '?'
+                self.day_of_week = day_of_week if day_of_week is not None else '?'
+                self.year = year if year is not None else '?'
             else:
-                # TODO parse cron schedule
-                pass
+                cron_sched_split = cron_schedule.split(' ')
+                if len(cron_sched_split) != 7:
+                    self.logger.debug(
+                        'Invalid string supplied for cron_schedule to the RundeckJobSchedule class: %s' % cron_schedule)
+                    raise Exception
+                self.second = cron_sched_split[0]
+                self.minute = cron_sched_split[1]
+                self.hour = cron_sched_split[2]
+                self.day_of_month = cron_sched_split[3]
+                self.month = cron_sched_split[4]
+                self.day_of_week = cron_sched_split[5]
+                self.year = cron_sched_split[6]
 
     class RUNDECKAPIError(Exception):
         """
