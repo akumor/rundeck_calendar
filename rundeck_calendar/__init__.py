@@ -48,7 +48,6 @@ class RundeckCalendar:
             self.name = name
             self.project = project
             if cron_schedule is None:
-                # TODO determine if '*' is the correct value when not specified in the XML
                 self.second = second if second is not None else '?'
                 self.minute = minute if minute is not None else '?'
                 self.hour = hour if hour is not None else '?'
