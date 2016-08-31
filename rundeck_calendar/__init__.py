@@ -11,9 +11,9 @@ except ImportError:
 import sys
 import requests
 import json
-from lxml import etree
+import lxml.etree as etree
 import getopt
-import ConfigParser
+import configparser
 import signal
 
 
@@ -304,7 +304,7 @@ Usage:
                 sys.exit(1)
             # Parse the credentials file real quick to get the apitoken
             ARG_VALUES['credentials='] = opt[1]
-            config_parser = ConfigParser.ConfigParser()
+            config_parser = configparser.ConfigParser()
             config_parser.read(opt[1])
             ARG_VALUES['apitoken='] = config_parser.get("credentials", "apitoken")
         elif opt[0] in ('-u', '--uuid'):
