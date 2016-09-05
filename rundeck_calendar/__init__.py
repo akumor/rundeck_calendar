@@ -1,5 +1,8 @@
 #!/usr/bin/env python
+"""
 
+"""
+# TODO add Google Calendar output https://github.com/fabriceb/gcalcron
 import os
 import logging
 try:  # Python 2.7+
@@ -93,7 +96,7 @@ class RundeckCalendar:
 
     def __init__(self, host, port, api_token, ssl_enabled=True):
         """
-        Returns a RUNDECK object to represent a Rundeck server
+        Returns a RundeckCalendar object to represent the schedules of jobs on the Rundeck server
         :param host: FQDN or IP address of the Rundeck server
         :param port: port on which the Rundeck service is listening
         :param api_token: string containing a token used to authenticate with the Rundeck API.
@@ -377,3 +380,5 @@ if __name__ == "__main__":
         file_hdlr = logging.FileHandler(ARG_VALUES["logfilepath="])
         # add the handler to the logger
         LOGGER.addHandler(file_hdlr)
+
+    rundeck_calendar = RundeckCalendar(ARG_VALUES['server='], ARG_VALUES['port='], ARG_VALUES['apitoken='])
