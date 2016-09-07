@@ -109,7 +109,7 @@ class RundeckCalendar:
         self.api_token = api_token
         self.ssl_enabled = ssl_enabled
         self.project_names = self._get_project_names()
-        self.rundeck_jobs = self._get_rundeck_jobs()
+        self.rundeck_job_schedules = self._get_rundeck_job_schedules()
 
     def _get_project_names(self):
         """
