@@ -127,11 +127,12 @@ class RundeckCalendar:
             self.logger.error("Failed to obtain list of projects from the API.")
             raise self.RUNDECKAPIError(status_code=resp.status_code, response=resp.text)
         else:
+            self.logger.debug('Get project name response:\n%s' % resp.text)
             doc = etree.fromstring(resp.text)
-            # print resp.text
             project_names = []
             for projects in doc:
                 for name in projects.findall('project'):
+                    self.logger.debug('name.find("name").text:\n%s' % name.find('name').text)
                     project_names.append(name.find('name').text)
             return project_names
 
@@ -164,15 +165,16 @@ class RundeckCalendar:
                     if job.find('schedule') is not None:
                         sched = job.find('schedule')
                         # Store schedule data
-                        if sched.attrib['crontab'] is not None:
-                            rundeck_job_schedule = self.RundeckJobSchedule(job.find('id').text,
-                                                                           job.find('name').text,
-                                                                           project_name)
-                            try:
-                                rundeck_job_schedule.cron_schedule = sched.attrib['crontab']
-                            except (AttributeError, KeyError) as e:
-                                pass
-                        else:
+                        try:
+                            if sched.attrib['crontab'] is not None:
+                                rundeck_job_schedule = self.RundeckJobSchedule(job.find('id').text,
+                                                                               job.find('name').text,
+                                                                               project_name)
+                                try:
+                                    rundeck_job_schedule.cron_schedule = sched.attrib['crontab']
+                                except (AttributeError, KeyError) as e:
+                                    pass
+                        except KeyError:
                             rundeck_job_schedule = self.RundeckJobSchedule(job.find('id').text,
                                                                            job.find('name').text,
                                                                            project_name)
@@ -204,11 +206,10 @@ class RundeckCalendar:
                                 rundeck_job_schedule.year = sched.find('year').attrib['year']
                             except (AttributeError, KeyError) as e:
                                 pass
-                            if sched.find('month').attrib['day'] is not None:
-                                try:
-                                    rundeck_job_schedule.day_of_month = sched.find('month').attrib['day']
-                                except KeyError:
-                                    pass
+                            try:
+                                rundeck_job_schedule.day_of_month = sched.find('month').attrib['day']
+                            except KeyError:
+                                pass
 
                         rundeck_job_schedules.append(rundeck_job_schedule)
         return rundeck_job_schedules
