@@ -59,6 +59,7 @@ class RundeckCalendar:
                 self.day_of_week = day_of_week if day_of_week is not None else '?'
                 self.year = year if year is not None else '?'
             else:
+                self.logger.debug(self.project + ':' + self.name + ': ' + cron_schedule)
                 cron_sched_split = cron_schedule.split(' ')
                 if len(cron_sched_split) != 7:
                     self.logger.debug(
@@ -166,15 +167,11 @@ class RundeckCalendar:
                         sched = job.find('schedule')
                         # Store schedule data
                         try:
-                            if sched.attrib['crontab'] is not None:
-                                rundeck_job_schedule = self.RundeckJobSchedule(job.find('id').text,
-                                                                               job.find('name').text,
-                                                                               project_name)
-                                try:
-                                    rundeck_job_schedule.cron_schedule = sched.attrib['crontab']
-                                except (AttributeError, KeyError) as e:
-                                    pass
-                        except KeyError:
+                            rundeck_job_schedule = self.RundeckJobSchedule(job.find('id').text,
+                                                                           job.find('name').text,
+                                                                           project_name)
+                            rundeck_job_schedule.cron_schedule = sched.attrib['crontab']
+                        except (AttributeError, KeyError) as e:
                             rundeck_job_schedule = self.RundeckJobSchedule(job.find('id').text,
                                                                            job.find('name').text,
                                                                            project_name)
@@ -183,7 +180,7 @@ class RundeckCalendar:
                             except (AttributeError, KeyError) as e:
                                 pass
                             try:
-                                rundeck_job_schedule.minute = sched.find('time').attrib['minutes']
+                                rundeck_job_schedule.minute = sched.find('time').attrib['minute']
                             except (AttributeError, KeyError) as e:
                                 pass
                             try:
@@ -214,8 +211,25 @@ class RundeckCalendar:
                         rundeck_job_schedules.append(rundeck_job_schedule)
         return rundeck_job_schedules
 
+    def get_schedule_summary(self):
+        """
+        Returns a string containing the Rundeck cron schedules of all the jobs in this "Calendar".
+        :return: string
+        """
+        summary = "project:job: second minute hour day_of_month month day_of_week year\n"
+        for run_sched in self.rundeck_job_schedules:
+            summary += run_sched.project + ':' + run_sched.name + ': '
+            summary += run_sched.second + ' '
+            summary += run_sched.minute + ' '
+            summary += run_sched.hour + ' '
+            summary += run_sched.day_of_month + ' '
+            summary += run_sched.month + ' '
+            summary += run_sched.day_of_week + ' '
+            summary += run_sched.year + '\n'
+        return summary
+
 # Setup logging
-LOGGER_NAME = 'disable_rundeck_job'
+LOGGER_NAME = __name__
 LOGGER = logging.getLogger(LOGGER_NAME)
 LOGGER.setLevel(logging.INFO)
 # create console handler with a higher log level
@@ -236,6 +250,7 @@ ARG_VALUES = {"server=": "",
               "logfilepath=": ""
               }
 
+
 def signal_handler(signal, frame):
     """
     Handles signals such as SIGINT.
@@ -245,6 +260,7 @@ def signal_handler(signal, frame):
     # Print Ctrl+C message and exit
     LOGGER.info('You pressed Ctrl+C! Script Exited.')
     sys.exit(0)
+
 
 def process_args():
     """
@@ -328,9 +344,6 @@ Usage:
         elif opt[0] in ('-u', '--uuid'):
             for uuid in opt[1].split(','):
                 ARG_VALUES['uuid='].append(uuid)
-        elif opt[0] in ('-C', '--cmdbenvironment'):
-            for cmdb_environment in opt[1].split(','):
-                ARG_VALUES['cmdbenvironment='].append(cmdb_environment)
         elif opt[0] in ('-L', '--logfilepath'):
             # Do some error checking
             try:
@@ -343,10 +356,6 @@ Usage:
                 print("ERROR: Invalid path (%s) specified for --logfilepath option." % opt[1])
                 sys.exit(1)
             ARG_VALUES['logfilepath='] = opt[1]
-        elif opt[0] in ('-d', '--disableexecutions'):
-            ARG_VALUES['disableexecutions'] = True
-        elif opt[0] in ('-D', '--disableschedules'):
-            ARG_VALUES['disableschedules'] = True
 
             # Make sure we have required arguments.
     if ARG_VALUES['server='] == "":

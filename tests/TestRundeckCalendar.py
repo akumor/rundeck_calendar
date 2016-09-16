@@ -227,6 +227,9 @@ class TestRundeckCalendar(unittest.TestCase):
         session.close()
 
     def test_constructor(self):
+        """
+        Tests the constructor for the RundeckCalendar class.
+        """
         rund_cal = rundeck_calendar.RundeckCalendar('localhost', '4440', api_token=api_token, ssl_enabled=False)
         rund_cal.logger.setLevel(logging.DEBUG)
         rund_cal._get_project_names()
@@ -234,8 +237,23 @@ class TestRundeckCalendar(unittest.TestCase):
         self.assertNotEqual(rund_cal.project_names, [])
         self.assertNotEqual(rund_cal.rundeck_job_schedules, [])
 
+    def test_get_schedule_summary(self):
+        """
+        Tests the get_schedule_summary method of the RundeckCalendar class.
+        """
+        log = logging.getLogger("TestRundeckCalendar.test_get_schedule_summary")
+        rund_cal = rundeck_calendar.RundeckCalendar('localhost', '4440', api_token=api_token, ssl_enabled=False)
+        rund_cal.logger.setLevel(logging.DEBUG)
+        correct_output = '''project:job: second minute hour day_of_month month day_of_week year
+TestProject:test_job_1: 0 45 12 ? * 2-6 *
+'''
+        log.debug('Rundeck Calendar Summary:\n' + rund_cal.get_schedule_summary())
+        self.assertEqual(rund_cal.get_schedule_summary(), correct_output)
+
+
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stdout)
+    logging.getLogger("TestRundeckCalendar.test_get_schedule_summary").setLevel(logging.DEBUG)
     logging.getLogger("TestRundeckCalendar.test_constructor").setLevel(logging.DEBUG)
     logging.getLogger("TestRundeckCalendar.setUp").setLevel(logging.DEBUG)
     unittest.main()
