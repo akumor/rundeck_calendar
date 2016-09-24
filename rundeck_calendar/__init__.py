@@ -24,12 +24,13 @@ class RundeckCalendar:
         Class used to store data about Rundeck jobs related to their schedule.
         """
 
-        def __init__(self, uuid, name, project, cron_schedule=None, second=None, minute=None, hour=None,
+        def __init__(self, uuid, name, project, group=None, cron_schedule=None, second=None, minute=None, hour=None,
                      day_of_month=None, month=None, day_of_week=None, year=None):
             """
             :param uuid: UUID of the Rundeck job
             :param name: Name of the Rundeck job
             :param project: Project that the Rundeck job belongs to
+            :param group: Group the Rundeck job belongs to
             :param cron_schedule: Schedule for the Rundeck job
             :param second: second(s) at which the job is scheduled
             :param minute: minute(s) at which the job is scheduled
@@ -42,6 +43,7 @@ class RundeckCalendar:
             """
             self.logger = logging.getLogger(__name__)
             self.uuid = uuid
+            self.group = group
             self.name = name
             self.project = project
             if cron_schedule is None:
@@ -163,12 +165,15 @@ class RundeckCalendar:
                         try:
                             rundeck_job_schedule = self.RundeckJobSchedule(job.find('id').text,
                                                                            job.find('name').text,
-                                                                           project_name)
-                            rundeck_job_schedule.cron_schedule = sched.attrib['crontab']
-                        except (AttributeError, KeyError) as e:
+                                                                           project_name,
+                                                                           group=job.find('group').text)
+                        except AttributeError:
                             rundeck_job_schedule = self.RundeckJobSchedule(job.find('id').text,
                                                                            job.find('name').text,
                                                                            project_name)
+                        try:
+                            rundeck_job_schedule.cron_schedule = sched.attrib['crontab']
+                        except (AttributeError, KeyError) as e:
                             try:
                                 rundeck_job_schedule.second = sched.find('time').attrib['seconds']
                             except (AttributeError, KeyError) as e:
@@ -199,7 +204,7 @@ class RundeckCalendar:
                                 pass
                             try:
                                 rundeck_job_schedule.day_of_month = sched.find('month').attrib['day']
-                            except KeyError:
+                            except (AttributeError, KeyError):
                                 pass
 
                         rundeck_job_schedules.append(rundeck_job_schedule)
@@ -212,7 +217,10 @@ class RundeckCalendar:
         """
         summary = "project:job: second minute hour day_of_month month day_of_week year\n"
         for run_sched in self.rundeck_job_schedules:
-            summary += run_sched.project + ':' + run_sched.name + ': '
+            summary += run_sched.project + ':'
+            if run_sched.group is not None:
+                summary += run_sched.group + '/'
+            summary += run_sched.name + ': '
             summary += run_sched.second + ' '
             summary += run_sched.minute + ' '
             summary += run_sched.hour + ' '
